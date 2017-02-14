@@ -8,4 +8,4 @@ class Globals:
     animals = {}
     food = {}
     animal_pos = {}
-    time_left = 90
+    time_left = 150

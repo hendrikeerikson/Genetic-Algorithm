@@ -99,7 +99,7 @@ class Animal:
         if (self.pos[0], self.pos[1],) in Globals.food:
             self.score += 10
             Globals.food.pop((self.pos[0], self.pos[1],))
-            Globals.time_left = 90
+            Globals.time_left = 150
 
     # draw a regular rect on the screen at the animals position
     def draw(self, scr, campos):
@@ -126,5 +126,5 @@ class Animal:
                 self.weights1[x][y] += np.random.uniform(-0.1, 0.1)
         '''
 
-        self.weights1 += np.random.uniform(-0.02, 0.02, size=self.weights1.shape)
-        self.weights2 += np.random.uniform(-0.02, 0.02, size=self.weights2.shape)
+        self.weights1 += np.random.uniform(-0.08, 0.08, size=self.weights1.shape)
+        self.weights2 += np.random.uniform(-0.08, 0.08, size=self.weights2.shape)

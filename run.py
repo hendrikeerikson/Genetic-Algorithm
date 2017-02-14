@@ -99,7 +99,7 @@ if __name__ == "__main__":
 
         # if no one has eaten for 90 frames end cycle
         if Globals.time_left <= 0:
-            Globals.time_left = 90
+            Globals.time_left = 150
             end_cycle()
             generation += 1
             cam.pos = np.array([0, 0])
