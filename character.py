@@ -39,33 +39,35 @@ class Animal:
         self.score = 1
 
         self.pos = np.array([randint(0, 79), randint(0, 59)], dtype=np.float32)
-        self.vision = np.zeros([7, 7], dtype=np.float32)
+        self.vision = np.zeros([5, 5], dtype=np.float32)
 
         # set the neurons and weights in such a way as to allow them to be multiplied
-        self.layer1 = np.zeros([1, 49], dtype=np.float32)
+        self.layer1 = np.zeros([1, 25], dtype=np.float32)
         self.layer2 = np.zeros([1, 15], dtype=np.float32)
         self.layer3 = np.zeros([1, 4], dtype=np.float32)
 
         # set the initial values of the weights from -1/sqrt(d) to 1/sqrt(d) where d is the number of inputs
-        self.weights1 = np.random.uniform(-0.4, 0.4, [49, 15])
+        self.weights1 = np.random.uniform(-0.4, 0.4, [25, 15])
         self.weights2 = np.random.uniform(-0.4, 0.4, [15, 4])
 
     # the animal sees in 7x7 grid around it, it can only see food sources not other animals
     def update_vision(self):
-        self.vision = np.zeros([7, 7], dtype=np.float32)
+        self.vision = np.zeros([5, 5], dtype=np.float32)
 
-        for i in range(-3, 4):
-            for j in range(-3, 4):
+        for i in range(-2, 3):
+            for j in range(-2, 3):
                 if self.pos[0]+i < 0 or self.pos[0]+i >= 80 or self.pos[1]+j < 0 or self.pos[1]+j >= 60:
-                    self.vision[i + 3][j + 3] = -1
+                    self.vision[i + 2][j + 2] = -1
+                elif (self.pos[0]+i, self.pos[1]+j, ) in Globals.animal_pos:
+                    self.vision[i + 2][j + 2] = -1
                 elif (self.pos[0]+i, self.pos[1]+j, ) not in Globals.food:
-                    self.vision[i+3][j+3] = 1
+                    self.vision[i+2][j+2] = 1
 
     # called every two frames
     def update(self):
         self.update_vision()
 
-        self.layer1 = self.vision.reshape([1, 49])  # set layer 1 equal to the animals vision
+        self.layer1 = self.vision.reshape([1, 25])  # set layer 1 equal to the animals vision
         self.layer2 = sigmoid(np.dot(self.layer1, self.weights1))  # multiply to get the neuron's value
 
         self.layer3 = np.dot(self.layer2, self.weights2)
@@ -86,6 +88,7 @@ class Animal:
             vel[1] = -self.layer3[0][3].round()
 
         # detect collision with walls
+
         if 0 <= (self.pos[0] + vel[0]) < 80:
             self.pos[0] += vel[0]  # move the animal based on the output
 
@@ -96,6 +99,7 @@ class Animal:
         if (self.pos[0], self.pos[1],) in Globals.food:
             self.score += 10
             Globals.food.pop((self.pos[0], self.pos[1],))
+            Globals.time_left = 90
 
     # draw a regular rect on the screen at the animals position
     def draw(self, scr, campos):

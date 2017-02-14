@@ -7,3 +7,5 @@ class Globals:
     tilesize = 10
     animals = {}
     food = {}
+    animal_pos = {}
+    time_left = 90

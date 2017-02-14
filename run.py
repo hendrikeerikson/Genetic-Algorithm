@@ -28,7 +28,7 @@ def draw_background(scr, campos):
 
 
 def display_fps(scr):
-    surf = Globals.font.render("FPS=" + str(1000//Globals.ms), False, [200, 200, 200])
+    surf = Globals.font.render("FPS=" + str(1000//Globals.ms), False, [200, 200, 200], [0, 0, 0])
     scr.blit(surf, [10, 10])
 
 
@@ -75,7 +75,6 @@ if __name__ == "__main__":
     for i in range(20):
         Globals.animals[i] = character.Animal()
 
-    framecount = 0
     generation = 1
     generate_food()
 
@@ -88,17 +87,30 @@ if __name__ == "__main__":
                 pg.quit()
                 sys.exit()
 
+        # add the position of every animal to a dict for later lookup
+        # lookup from dicts is faster then from lists
+        Globals.animal_pos = {}
+        for i in Globals.animals:
+            Globals.animal_pos[(Globals.animals[i].pos[0], Globals.animals[i].pos[1], )] = 1
+
+        # update the brains and position of every animal
         for i in Globals.animals:
             Globals.animals[i].update()
 
-        if framecount == 150:
-            framecount = 0
+        # if no one has eaten for 90 frames end cycle
+        if Globals.time_left <= 0:
+            Globals.time_left = 90
             end_cycle()
             generation += 1
             cam.pos = np.array([0, 0])
 
-        framecount += 1
+        # keep adding frames
+        Globals.time_left -= 1
 
+        if pg.key.get_pressed()[pg.K_q]:
+            Globals.time_left = 70
+
+        # when space is held down, do not restrict fps and stop rendering
         if not pg.key.get_pressed()[pg.K_SPACE]:
             screen.fill((0, 0, 0))
             draw_background(screen, cam.pos)
@@ -112,6 +124,9 @@ if __name__ == "__main__":
                                                     Globals.tilesize,
                                                     Globals.tilesize])
             Globals.ms = clock.tick(30)
+
+        else:
+            Globals.ms = clock.tick()
 
         display_fps(screen)
         pg.display.flip()  # switch frame buffers
