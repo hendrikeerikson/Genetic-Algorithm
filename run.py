@@ -42,31 +42,19 @@ def generate_food():
 
 # breed and generate new animals and blast them with radiation
 def end_cycle():
-    scored_animals = {}
+    weights = []
 
+    # add each type of brain to the mix proportionally to its score
     for i in Globals.animals:
-        score = Globals.animals[i].score
-        scored_animals[score + uniform(-0.3, 0.3)] = i
+        weights += [[Globals.animals[i].weights1, Globals.animals[i].weights2]] * Globals.animals[i].score
 
-    ordered_scores = sorted(scored_animals.keys())
-
-    print("This generation's score is : ", round(sum(ordered_scores)), " Generation : ", generation)
-
-    weights1 = []
-    weights2 = []
-
-    for i in range(1, 4):
-        weights1.append(Globals.animals[scored_animals[ordered_scores[-i]]].weights1)
-        weights2.append(Globals.animals[scored_animals[ordered_scores[-i]]].weights2)
-
-    Globals.animals = {}
+    print("Total amount of brains in the pool : ", len(weights), " in generation : ", generation)
 
     for i in range(20):
-        new_weights1 = character.breed(weights1)
-        new_weights2 = character.breed(weights2)
+        new_weights = character.breed(weights)
         Globals.animals[i] = character.Animal()
-        Globals.animals[i].weights1 = deepcopy(new_weights1)
-        Globals.animals[i].weights2 = deepcopy(new_weights2)
+        Globals.animals[i].weights1 = deepcopy(new_weights[0])
+        Globals.animals[i].weights2 = deepcopy(new_weights[1])
         Globals.animals[i].mutate()
 
     generate_food()

@@ -3,6 +3,7 @@ from random import randint
 from globals import Globals
 import pygame as pg
 from math import e
+from random import choice
 
 
 # return a sigmoid in the range of -1 to 1 with a large slope
@@ -10,20 +11,32 @@ def sigmoid(x):
     return 1 / (1 + e**(-3*x))
 
 
-# take the best scoring animals and breed them together
+# take two sets of two weights from the list and breed them together
 def breed(weight_list):
-    size = weight_list[0].shape
-    new_weights = np.zeros(size)
+    # choose two random sets of weights, [weights1, weights2]
+    weights_A = choice(weight_list)
+    weights_B = choice(weight_list)
 
-    for i in range(size[0]):
-            new_weights[i]= weight_list[randint(0, len(weight_list)-1)][i]
+    size1 = weights_A[0].shape  # size of weights1
+    size2 = weights_A[1].shape  # size of weights2
+
+    new_weights = [np.zeros(size1, dtype=np.float32),
+                   np.zeros(size2, dtype=np.float32)]
+
+    # breed them together row at a time
+    for i in range(size1[0]):
+            new_weights[0][i] = choice([weights_A[0][i], weights_B[0][i]])
+
+            # breed them together row at a time
+    for i in range(size2[0]):
+        new_weights[1][i] = choice([weights_A[1][i], weights_B[1][i]])
 
     return new_weights
 
 
 class Animal:
     def __init__(self):
-        self.score = 0
+        self.score = 1
 
         self.pos = np.array([randint(0, 79), randint(0, 59)], dtype=np.float32)
         self.vision = np.zeros([7, 7], dtype=np.float32)
