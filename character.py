@@ -3,7 +3,7 @@ from random import randint
 from globals import Globals
 import pygame as pg
 from math import e
-from random import choice
+from random import choice, random
 
 
 # return a sigmoid in the range of -1 to 1 with a large slope
@@ -41,14 +41,21 @@ class Animal:
         self.pos = np.array([randint(0, 79), randint(0, 59)], dtype=np.float32)
         self.vision = np.zeros([5, 5], dtype=np.float32)
 
+        self.L1S = 26
+        self.L2S = 15
+        self.L3S = 4
+
         # set the neurons and weights in such a way as to allow them to be multiplied
-        self.layer1 = np.zeros([1, 25], dtype=np.float32)
-        self.layer2 = np.zeros([1, 15], dtype=np.float32)
-        self.layer3 = np.zeros([1, 4], dtype=np.float32)
+        self.layer1 = np.zeros([1, self.L1S], dtype=np.float32)
+        self.layer2 = np.zeros([1, self.L2S], dtype=np.float32)
+        self.layer3 = np.zeros([1, self.L3S], dtype=np.float32)
 
         # set the initial values of the weights from -1/sqrt(d) to 1/sqrt(d) where d is the number of inputs
-        self.weights1 = np.random.uniform(-0.4, 0.4, [25, 15])
-        self.weights2 = np.random.uniform(-0.4, 0.4, [15, 4])
+        self.weights1 = np.random.uniform(-0.4, 0.4, [self.L1S + 1, self.L2S])
+        self.weights2 = np.random.uniform(-0.4, 0.4, [self.L2S + 1, self.L3S])
+
+        self.rec_weights1 = np.random.uniform(-0.4, 0.4, [self.L2S + 1, self.L2S])
+        self.rec_weights2 = np.random.uniform(-0.4, 0.4, [self.L3S + 1, self.L3S])
 
     # the animal sees in 7x7 grid around it, it can only see food sources not other animals
     def update_vision(self):
@@ -63,16 +70,23 @@ class Animal:
                 elif (self.pos[0]+i, self.pos[1]+j, ) not in Globals.food:
                     self.vision[i+2][j+2] = 1
 
+    # constructs input vector to neural network
+    def construct_input(self):
+        # INPUT SHAPE 25 + 1 = self.L1S
+        res = np.hstack((self.vision.reshape((1, -1)), np.array([[random()]])))
+        return res
+
+    def add_bias(self, vec):
+        res = np.hstack((vec, np.array([[1]])))
+        return res
+
     # called every two frames
     def update(self):
         self.update_vision()
 
-        self.layer1 = self.vision.reshape([1, 25])  # set layer 1 equal to the animals vision
-        self.layer2 = sigmoid(np.dot(self.layer1, self.weights1))  # multiply to get the neuron's value
-
-        self.layer3 = np.dot(self.layer2, self.weights2)
-
-        self.layer3 = sigmoid(self.layer3)  # clip the output to -1 or 0 or 1 based on the sigmoid
+        self.layer1 = self.construct_input() # set layer 1 equal to the animals vision + stuff
+        self.layer2 = sigmoid(np.dot(self.add_bias(self.layer1), self.weights1)) #+ np.dot(self.add_bias(self.layer2), self.rec_weights1))  # multiply to get the neuron's value
+        self.layer3 = sigmoid(np.dot(self.add_bias(self.layer2), self.weights2)) #+ np.dot(self.add_bias(self.layer3), self.rec_weights2))
 
         vel = np.array([0, 0])
 
@@ -126,5 +140,5 @@ class Animal:
                 self.weights1[x][y] += np.random.uniform(-0.1, 0.1)
         '''
 
-        self.weights1 += np.random.uniform(-0.08, 0.08, size=self.weights1.shape)
-        self.weights2 += np.random.uniform(-0.08, 0.08, size=self.weights2.shape)
+        self.weights1 += np.random.uniform(-1., 1., size=self.weights1.shape)
+        self.weights2 += np.random.uniform(-1., 1., size=self.weights2.shape)
